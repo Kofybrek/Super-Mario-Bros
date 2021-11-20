@@ -15,7 +15,7 @@ Map convert_sketch(std::vector<Goomba>& i_goombas, const sf::Image& i_map_sketch
 	//2) Placement of entities.
 	//3) Placement of background tiles.
 	unsigned short map_height = floor(i_map_sketch.getSize().y / 3.f);
-
+    
 	Map output_map(i_map_sketch.getSize().x);
 
 	for (unsigned short a = 0; a < i_map_sketch.getSize().x; a++)

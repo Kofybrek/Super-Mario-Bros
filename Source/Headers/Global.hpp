@@ -1,4 +1,9 @@
 #pragma once
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+
+//#include <IOKit/hid/IOHIDLib.h>
 
 constexpr float GOOMBA_SPEED = 1;
 constexpr float GRAVITY = 0.25f;
@@ -23,9 +28,11 @@ constexpr unsigned short GOOMBA_DEATH_DURATION = 32;
 constexpr unsigned short GOOMBA_WALK_ANIMATION_SPEED = 32;
 constexpr unsigned short MARIO_WALK_ANIMATION_SPEED = 4;
 constexpr unsigned short SCREEN_HEIGHT = 240;
-constexpr unsigned short SCREEN_WIDTH = 256;
+constexpr unsigned short SCREEN_WIDTH = 720;
 
 constexpr std::chrono::microseconds FRAME_DURATION(16667);
+
+
 
 enum Cell
 {

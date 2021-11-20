@@ -50,6 +50,7 @@ void Animation::update()
 	while (animation_iterator >= animation_speed)
 	{
 		animation_iterator -= animation_speed;
+//        total_frames = 100;
 
 		current_frame = (1 + current_frame) % total_frames;
 	}
