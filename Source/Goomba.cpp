@@ -53,15 +53,6 @@ unsigned short Goomba::get_death_timer() const
 void Goomba::die()
 {
 	dead = 1;
-//    sf::Music music;
-//	texture.loadFromFile(resourcePath() + "Images/GoombaDeath.png");
-//    // Load a music to play
-//    if (!music.openFromFile(resourcePath() + "audio/step.wav")) {
-//        return EXIT_FAILURE;
-//    }
-//    std::cout << "died" << std::endl;
-//    music.setLoop(false);
-//    music.play();
 }
 
 void Goomba::draw(unsigned i_view_x, sf::RenderWindow& i_window)

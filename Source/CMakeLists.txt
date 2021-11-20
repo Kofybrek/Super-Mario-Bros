@@ -13,7 +13,6 @@ include_directories(${SFML_DIR})
 file(GLOB SRC_FILES
         "${PROJECT_SOURCE_DIR}/Headers/*.hpp"
         "${PROJECT_SOURCE_DIR}/*.cpp"
-        "${PROJECT_SOURCE_DIR}/Headers/*.mm"
     )
 add_executable(mario ${SRC_FILES})
 # copy Resources after

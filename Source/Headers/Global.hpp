@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
-#include <IOKit/hid/IOHIDLib.h>
 
 constexpr float GOOMBA_SPEED = 1;
 constexpr float GRAVITY = 0.25f;

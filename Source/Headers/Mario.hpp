@@ -39,9 +39,6 @@ public:
 	void reset();
 	void set_position(float i_x, float i_y);
 	void set_vertical_speed(float i_value);
-    unsigned char get_jump_timer();
-    void set_jump_timer(unsigned char i_value);
-    void set_horizontal_speed(float i_value);
     void update(const Map& i_map, const sf::Event & i_event, bool moving = 0);
     void go_right(const Map& i_map);
     void start_music();

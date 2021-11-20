@@ -83,7 +83,7 @@ int main()
                     map = convert_sketch(goombas, map_sketch, mario);
                     
                 }
-                // Space go fast(auto moveing / erase auto moving)
+                // Space go fast(auto moving / twice erase auto moving)
                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
                     auto_moving = !auto_moving;
                 }

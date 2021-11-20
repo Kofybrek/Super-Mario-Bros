@@ -31,13 +31,6 @@ bool Mario::get_dead() const
 	return dead;
 }
 
-unsigned char Mario::get_jump_timer(){
-    return this->jump_timer;
-}
-void Mario::set_jump_timer(unsigned char i_value){
-    this->jump_timer = i_value;
-}
-
 float Mario::get_vertical_speed() const
 {
 	return vertical_speed;
@@ -160,11 +153,6 @@ void Mario::set_vertical_speed(float i_value)
 	vertical_speed = i_value;
 }
 
-void Mario::set_horizontal_speed(float i_value)
-{
-    horizontal_speed = i_value;
-}
-
 void Mario::update(const Map& i_map, const sf::Event & event, bool moving)
 {
 //    bool moving = 1;
@@ -184,7 +172,7 @@ void Mario::update(const Map& i_map, const sf::Event & event, bool moving)
         {
             move_left = 1;
         }
-        // macOS compatiable
+        // macOS app compatible
         else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Left)
 		{
             move_left = 1;
@@ -201,7 +189,7 @@ void Mario::update(const Map& i_map, const sf::Event & event, bool moving)
         {
             move_right = 1;
         }
-        // macOS compatiable
+        // macOS app compatible
         else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Right)
         {
             move_right = 1;
@@ -237,7 +225,6 @@ void Mario::update(const Map& i_map, const sf::Event & event, bool moving)
 		//{bottom-right collision, bottom-left collision, top-right collision, top-left collision}
 
 		horizontal_collision = map_collision(horizontal_speed + x, y, {Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, i_map);
-//        std::cout << horizontal_collision << "\t speed: " << horizontal_speed << std::endl;
 
 		if (0 < horizontal_collision)
 		{
@@ -264,24 +251,20 @@ void Mario::update(const Map& i_map, const sf::Event & event, bool moving)
 
 		//Is Mario standing on the ground?
 		vertical_collision = map_collision(x, 1 + y, {Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, i_map);
-//        std::cout << "first: " << vertical_collision << std::endl;
 		//I added the <Z> key because some people will say, "I LiKe tO PrEsS ThE <Z> KeY InStEaD Of tHe <Up> KeY!"
 		if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
             1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
         {
             move_jump = 1;
-        } else if  (event.type == sf::Event::KeyPressed &&
-            (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Z))
+        }
+        // macOS app compatible
+        else if (event.type == sf::Event::KeyPressed &&
+                (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Z))
         {
             move_jump = 1;
         }
         if (move_jump)
 		{
-//            horizontal_speed = 2;
-//            if (horizontal_speed == 0) {
-//                horizontal_speed = last_horizontal_speed * 2;
-//                last_horizontal_speed /= 2;
-//            }
 			if (0 == vertical_speed && 0 < vertical_collision)
 			{
 				vertical_speed = MARIO_JUMP_SPEED;
@@ -307,8 +290,6 @@ void Mario::update(const Map& i_map, const sf::Event & event, bool moving)
 		}
 
 		vertical_collision = map_collision(x, vertical_speed + y, {Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, i_map);
-//        std::cout << "horontal speed: " << horizontal_speed << std::endl;
-//        std::cout << "vetical speed: " << vertical_speed << std::endl;
 		if (0 < vertical_collision)
 		{
 			//3  - 0011 - top collision
