@@ -1,7 +1,5 @@
 #include <array>
 #include <chrono>
-#include <SFML/Audio.hpp>
-#include <SFML/Graphics.hpp>
 
 #include "Headers/Animation.hpp"
 #include "Headers/Global.hpp"
@@ -165,7 +163,7 @@ void Mario::update(const Map& i_map, const sf::Event & event, bool moving)
 		unsigned char horizontal_collision;
 		unsigned char vertical_collision;
 
-		on_ground = 1;
+		on_ground = 0;
         // move left
 		if (0 == sf::Keyboard::isKeyPressed(sf::Keyboard::Right) &&
 			1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
@@ -180,7 +178,6 @@ void Mario::update(const Map& i_map, const sf::Event & event, bool moving)
         if (move_left) {
 			moving = 1;
 			horizontal_speed = std::max(horizontal_speed - MARIO_ACCELERATION, -MARIO_WALK_SPEED);
-            last_horizontal_speed = horizontal_speed;
 		}
         // move right
         
@@ -197,9 +194,7 @@ void Mario::update(const Map& i_map, const sf::Event & event, bool moving)
         if (move_right)
 		{
 			moving = 1;
-
 			horizontal_speed = std::min(MARIO_ACCELERATION + horizontal_speed, MARIO_WALK_SPEED);
-            last_horizontal_speed = horizontal_speed;
 		}
 
 
@@ -348,11 +343,14 @@ void Mario::update(const Map& i_map, const sf::Event & event, bool moving)
 		{
 			vertical_speed = std::min(GRAVITY + vertical_speed, MAX_VERTICAL_SPEED);
 			y += vertical_speed;
+            // wait some time, reset the game
+            if (y > SCREEN_HEIGHT * 10) {
+                this->reset();
+            }
 		}
 		else if (1 == death_timer)
         {
 			vertical_speed = MARIO_JUMP_SPEED;
-            this->reset();
 		}
         
 

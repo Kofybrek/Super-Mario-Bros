@@ -53,6 +53,7 @@ unsigned short Goomba::get_death_timer() const
 void Goomba::die()
 {
 	dead = 1;
+    texture.loadFromFile("Resources/Images/GoombaDeath.png");
 }
 
 void Goomba::draw(unsigned i_view_x, sf::RenderWindow& i_window)

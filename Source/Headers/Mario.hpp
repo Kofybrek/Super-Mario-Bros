@@ -1,5 +1,6 @@
 #pragma once
-
+#include <SFML/Audio.hpp>
+#include <SFML/Graphics.hpp>
 class Mario
 {
 	bool dead;
@@ -7,7 +8,6 @@ class Mario
 	bool on_ground;
 
 	float horizontal_speed;
-    float last_horizontal_speed;
 	float vertical_speed;
 	float x;
 	float y;
