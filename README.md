@@ -10,3 +10,7 @@ Here's the video explaining how I did it: https://youtu.be/7D4uoSoQsjw
 3. `Esc` to exit the game.
 4. `Enter` to reset the game.
 5. `Space` parkour mode, automatic forward or backward, controlled by the arrow keys. Press again to cancel.
+
+### Game screenshots
+
+![](Source/Resources/Images/screen.png)
