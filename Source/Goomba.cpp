@@ -35,7 +35,7 @@ Goomba::Goomba(float i_x, float i_y) :
 	x(i_x),
 	y(i_y),
 	death_timer(GOOMBA_DEATH_DURATION),
-	walk_animation(GOOMBA_WALK_ANIMATION_SPEED, CELL_SIZE, "Resources/Images/GoombaWalk.png")
+	walk_animation(GOOMBA_WALK_ANIMATION_SPEED, CELL_SIZE,   "Resources/Images/GoombaWalk.png")
 {
 	texture.loadFromFile("Resources/Images/GoombaDeath.png");
 }
@@ -53,8 +53,15 @@ unsigned short Goomba::get_death_timer() const
 void Goomba::die()
 {
 	dead = 1;
-
-	texture.loadFromFile("Resources/Images/GoombaDeath.png");
+//    sf::Music music;
+//	texture.loadFromFile(resourcePath() + "Images/GoombaDeath.png");
+//    // Load a music to play
+//    if (!music.openFromFile(resourcePath() + "audio/step.wav")) {
+//        return EXIT_FAILURE;
+//    }
+//    std::cout << "died" << std::endl;
+//    music.setLoop(false);
+//    music.play();
 }
 
 void Goomba::draw(unsigned i_view_x, sf::RenderWindow& i_window)
@@ -164,8 +171,8 @@ void Goomba::update(unsigned i_view_x, const std::vector<Goomba>& i_goombas, con
 				//Therefore, if Mario touches the goomba while falling, the goomba will die.
 				if (0 < i_mario.get_vertical_speed())
 				{
+                    i_mario.start_other_music( "Resources/audio/step.wav");
 					i_mario.set_vertical_speed(0.5f * MARIO_JUMP_SPEED);
-
 					die();
 				}
 				else

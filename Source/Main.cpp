@@ -1,6 +1,8 @@
 #include <array>
 #include <chrono>
+#include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+//#import <IOKit/hid/IOHIDLib.h>
 
 #include "Headers/Animation.hpp"
 #include "Headers/Global.hpp"
@@ -9,22 +11,31 @@
 #include "Headers/ConvertSketch.hpp"
 #include "Headers/DrawMap.hpp"
 
+
 int main()
 {
+//    IOHIDManagerRef managerRef = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
 	//We'll use this to make the game framerate independent.
 	std::chrono::microseconds lag(0);
 
 	std::chrono::steady_clock::time_point previous_time;
 
 	std::vector<Goomba> goombas;
+    // set program icon
+    // Set the Icon
+    sf::Image icon;
+    if (!icon.loadFromFile( "Resources/Images/ico.png")) {
+        return EXIT_FAILURE;
+    }
 
 	sf::Event event;
-
 	sf::Image map_sketch;
-	map_sketch.loadFromFile("Resources/Images/MapSketch.png");
-
+	map_sketch.loadFromFile( "Resources/Images/MapSketch.png");
+    
+    // set window
 	sf::RenderWindow window(sf::VideoMode(SCREEN_RESIZE * SCREEN_WIDTH, SCREEN_RESIZE * SCREEN_HEIGHT), "Super Mario Bros", sf::Style::Close);
-	
+    window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+    
 	sf::Texture map_texture;
 	map_texture.loadFromFile("Resources/Images/Map.png");
 
@@ -33,13 +44,14 @@ int main()
 	Map map;
 
 	Mario mario;
-
+    mario.start_music();
 	map = convert_sketch(goombas, map_sketch, mario);
 
 	previous_time = std::chrono::steady_clock::now();
-
-	while (1 == window.isOpen())
+    bool auto_moving = 0;
+	while (window.isOpen())
 	{
+
 		std::chrono::microseconds delta_time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - previous_time);
 
 		lag += delta_time;
@@ -52,34 +64,31 @@ int main()
 
 			lag -= FRAME_DURATION;
 
-			while (1 == window.pollEvent(event))
+			while (window.pollEvent(event))
 			{
-				switch (event.type)
-				{
-					case sf::Event::Closed:
-					{
-						window.close();
+                // Close window: exit
+                if (event.type == sf::Event::Closed) {
+                    window.close();
+                }
 
-						break;
-					}
-					case sf::Event::KeyPressed:
-					{
-						switch (event.key.code)
-						{
-							case sf::Keyboard::Enter:
-							{
-								goombas.clear();
-
-								mario.reset();
-
-								map = convert_sketch(goombas, map_sketch, mario);
-							}
-						}
-					}
-				}
+                // Escape pressed: exit
+                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+                    window.close();
+                }
+                
+                // Enter restart
+                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
+                    goombas.clear();
+                    mario.reset();
+                    map = convert_sketch(goombas, map_sketch, mario);
+                    
+                }
+                // Space go fast(auto moveing / erase auto moving)
+                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
+                    auto_moving = !auto_moving;
+                }
 			}
-
-			mario.update(map);
+			mario.update(map, event, auto_moving);
 
 			view_x = std::clamp<int>(round(mario.get_x()) - 0.5f * (SCREEN_WIDTH - CELL_SIZE), 0, CELL_SIZE * map.size() - SCREEN_WIDTH);
 
@@ -97,7 +106,6 @@ int main()
 				if (0 == goombas[a].get_death_timer())
 				{
 					goombas.erase(a + goombas.begin());
-
 					a--;
 				}
 			}

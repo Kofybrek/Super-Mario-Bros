@@ -7,6 +7,7 @@ class Mario
 	bool on_ground;
 
 	float horizontal_speed;
+    float last_horizontal_speed;
 	float vertical_speed;
 	float x;
 	float y;
@@ -21,7 +22,8 @@ class Mario
 	sf::Sprite sprite;
 
 	sf::Texture texture;
-
+    sf::Music music;
+    sf::Music other_music;
 	Animation walk_animation;
 public:
 	Mario();
@@ -37,7 +39,12 @@ public:
 	void reset();
 	void set_position(float i_x, float i_y);
 	void set_vertical_speed(float i_value);
-	void update(const Map& i_map);
-
+    unsigned char get_jump_timer();
+    void set_jump_timer(unsigned char i_value);
+    void set_horizontal_speed(float i_value);
+    void update(const Map& i_map, const sf::Event & i_event, bool moving = 0);
+    void go_right(const Map& i_map);
+    void start_music();
+    void start_other_music(std::string path);
 	sf::FloatRect get_hit_box() const;
 };
