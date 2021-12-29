@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SFML/Audio.hpp>
+
 class Mario
 {
 	bool dead;
@@ -21,6 +23,12 @@ class Mario
 	sf::Sprite sprite;
 
 	sf::Texture texture;
+
+  sf::SoundBuffer jump_buf;
+  sf::Sound jump_snd;
+
+  sf::SoundBuffer die_buf;
+  sf::Sound die_snd;
 
 	Animation walk_animation;
 public:

@@ -1,5 +1,7 @@
 #include <array>
+#include <cmath>
 #include <chrono>
+#include <algorithm>
 #include <SFML/Graphics.hpp>
 
 #include "Headers/Animation.hpp"
