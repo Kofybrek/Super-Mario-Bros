@@ -1,6 +1,9 @@
 #include <array>
+#include <cmath>
 #include <chrono>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+#include <iostream>
 
 #include "Headers/Animation.hpp"
 #include "Headers/Global.hpp"
@@ -21,6 +24,11 @@ Mario::Mario() :
 	walk_animation(MARIO_WALK_ANIMATION_SPEED, CELL_SIZE, "Resources/Images/MarioWalk.png")
 {
 	texture.loadFromFile("Resources/Images/MarioIdle.png");
+  jump_buf.loadFromFile("Resources/Sounds/jump.ogg");
+  jump_snd.setBuffer(jump_buf);
+
+  die_buf.loadFromFile("Resources/Sounds/AH!.ogg");
+  die_snd.setBuffer(die_buf);
 
 	sprite.setTexture(texture);
 }
@@ -45,6 +53,7 @@ void Mario::die()
 	dead = 1;
 
 	texture.loadFromFile("Resources/Images/MarioDeath.png");
+  die_snd.play();
 }
 
 void Mario::draw(sf::RenderWindow& i_window)
@@ -210,10 +219,11 @@ void Mario::update(const Map& i_map)
 		vertical_collision = map_collision(x, 1 + y, {Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, i_map);
 		
 		//I added the <Z> key because some people will say, "I LiKe tO PrEsS ThE <Z> KeY InStEaD Of tHe <Up> KeY!"
-		if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || 1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
+		if (1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Space) || 1 == sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
 		{
 			if (0 == vertical_speed && 0 < vertical_collision)
 			{
+        jump_snd.play();
 				vertical_speed = MARIO_JUMP_SPEED;
 
 				jump_timer = MARIO_JUMP_TIMER;

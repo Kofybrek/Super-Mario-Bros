@@ -1,5 +1,6 @@
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <SFML/Graphics.hpp>
 
 #include "Headers/Animation.hpp"
@@ -12,17 +13,17 @@
 
 This is supposed to be a pool with 5 swimmers.
 
-     ____      ____      ____      ____     
+     ____      ____      ____      ____
 ____/    \____/    \____/    \____/    \____
-                                            
-_      ____      ____      __\o_     ____   
+
+_      ____      ____      __\o_     ____
  \____/    \____/    \____/    \____/    \__
-                                            
-___      ____ _o/  ____      ____      ____ 
+
+___      ____ _o/  ____      ____      ____
    \____/    \____/    \____/    \____/    \
-                            \o.             
+                            \o.
  ____      ____      ____      ____      ___
-/    \\o/_/    \____/    \____/    \____/   
+/    \\o/_/    \____/    \____/    \____/
 
 P.S. The 5th swimmer is drowning.
 

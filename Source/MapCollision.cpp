@@ -1,6 +1,8 @@
 #include <array>
+#include <cmath>
 #include <chrono>
 #include <vector>
+#include <algorithm>
 
 #include "Headers/Global.hpp"
 #include "Headers/MapCollision.hpp"
