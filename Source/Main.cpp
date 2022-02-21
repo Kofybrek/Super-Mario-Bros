@@ -4,37 +4,43 @@
 
 #include "Headers/Animation.hpp"
 #include "Headers/Global.hpp"
+#include "Headers/MapManager.hpp"
+#include "Headers/Mushroom.hpp"
 #include "Headers/Mario.hpp"
+#include "Headers/Enemy.hpp"
 #include "Headers/Goomba.hpp"
+#include "Headers/Koopa.hpp"
 #include "Headers/ConvertSketch.hpp"
-#include "Headers/DrawMap.hpp"
 
 int main()
 {
-	//We'll use this to make the game framerate independent.
+	unsigned char current_level = 0;
+
+	unsigned short level_finish = 0;
+
+	//We'll use this to make the game framerate-independent.
 	std::chrono::microseconds lag(0);
 
 	std::chrono::steady_clock::time_point previous_time;
 
-	std::vector<Goomba> goombas;
+	//Using smart pointer because I'm smart.
+	//(Because we need to store both Goomba and Koopa objects in the same vector).
+	std::vector<std::shared_ptr<Enemy>> enemies;
+
+	sf::Color background_color = sf::Color(0, 219, 255);
 
 	sf::Event event;
 
-	sf::Image map_sketch;
-	map_sketch.loadFromFile("Resources/Images/MapSketch.png");
-
 	sf::RenderWindow window(sf::VideoMode(SCREEN_RESIZE * SCREEN_WIDTH, SCREEN_RESIZE * SCREEN_HEIGHT), "Super Mario Bros", sf::Style::Close);
-	
-	sf::Texture map_texture;
-	map_texture.loadFromFile("Resources/Images/Map.png");
+	window.setPosition(sf::Vector2i(window.getPosition().x, window.getPosition().y - 90));
 
 	sf::View view(sf::FloatRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
 
-	Map map;
+	MapManager map_manager;
 
 	Mario mario;
 
-	map = convert_sketch(goombas, map_sketch, mario);
+	convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
 
 	previous_time = std::chrono::steady_clock::now();
 
@@ -45,6 +51,14 @@ int main()
 		lag += delta_time;
 
 		previous_time += delta_time;
+
+		//Soooooo, how was your day?
+		//Mine was good. I ate some cookies.
+		//Then I watched Youtube.
+		//...
+		//...
+		//...
+		//Yeah.
 
 		while (FRAME_DURATION <= lag)
 		{
@@ -68,35 +82,47 @@ int main()
 						{
 							case sf::Keyboard::Enter:
 							{
-								goombas.clear();
+								enemies.clear();
 
 								mario.reset();
 
-								map = convert_sketch(goombas, map_sketch, mario);
+								convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
 							}
 						}
 					}
 				}
 			}
 
-			mario.update(map);
-
-			view_x = std::clamp<int>(round(mario.get_x()) - 0.5f * (SCREEN_WIDTH - CELL_SIZE), 0, CELL_SIZE * map.size() - SCREEN_WIDTH);
-
-			for (Goomba& goomba : goombas)
+			//Once Mario goes beyond the finish, we move on to the next level.
+			if (CELL_SIZE * level_finish <= mario.get_x())
 			{
-				goomba.update(view_x, goombas, map, mario);
+				current_level++;
+
+				enemies.clear();
+
+				mario.reset();
+
+				convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
 			}
 
-			//We delete dead goombas for OPTIMIZATION!
-			for (unsigned short a = 0; a < goombas.size(); a++)
+			//Keeping Mario at the center of the view.
+			view_x = std::clamp<int>(round(mario.get_x()) - 0.5f * (SCREEN_WIDTH - CELL_SIZE), 0, CELL_SIZE * map_manager.get_map_width() - SCREEN_WIDTH);
+
+			map_manager.update();
+
+			mario.update(view_x, map_manager);
+
+			for (unsigned short a = 0; a < enemies.size(); a++)
 			{
-				//At first I tried to use iterators and pointers.
-				//But then I kept getting errors.
-				//So I decided to use numbers instead.
-				if (0 == goombas[a].get_death_timer())
+				enemies[a]->update(view_x, enemies, map_manager, mario);
+			}
+
+			for (unsigned short a = 0; a < enemies.size(); a++)
+			{
+				if (1 == enemies[a]->get_dead(1))
 				{
-					goombas.erase(a + goombas.begin());
+					//We don't have to worry about memory leaks since we're using SMART POINTERS!
+					enemies.erase(a + enemies.begin());
 
 					a--;
 				}
@@ -107,13 +133,18 @@ int main()
 				view.reset(sf::FloatRect(view_x, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
 
 				window.setView(view);
-				window.clear(sf::Color(0, 219, 255));
+				window.clear(background_color);
 
-				draw_map(view_x, map_sketch, window, map_texture, map);
+				//If the background color is sf::Color(0, 0, 85), the level is underground.
+				map_manager.draw_map(1, sf::Color(0, 0, 85) == background_color, view_x, window);
 
-				for (Goomba& goomba : goombas)
+				mario.draw_mushrooms(view_x, window);
+
+				map_manager.draw_map(0, sf::Color(0, 0, 85) == background_color, view_x, window);
+
+				for (unsigned short a = 0; a < enemies.size(); a++)
 				{
-					goomba.draw(view_x, window);
+					enemies[a]->draw(view_x, window);
 				}
 
 				mario.draw(window);

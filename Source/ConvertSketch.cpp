@@ -4,51 +4,68 @@
 
 #include "Headers/Animation.hpp"
 #include "Headers/Global.hpp"
+#include "Headers/MapManager.hpp"
+#include "Headers/Mushroom.hpp"
 #include "Headers/Mario.hpp"
+#include "Headers/Enemy.hpp"
 #include "Headers/Goomba.hpp"
+#include "Headers/Koopa.hpp"
 #include "Headers/ConvertSketch.hpp"
 
-Map convert_sketch(std::vector<Goomba>& i_goombas, const sf::Image& i_map_sketch, Mario& i_mario)
+//One person asked, "Why don't you use Tiled Map Editor?"
+//My answer is, "Why should I work hard, when I don't have to work hard?"
+void convert_sketch(const unsigned char i_current_level, unsigned short& i_level_finish, std::vector<std::shared_ptr<Enemy>>& i_enemies, sf::Color& i_background_color, MapManager& i_map_manager, Mario& i_mario)
 {
-	//The map sketch is divided into 3 sections:
-	//1) Placement of all the important blocks (walls, bricks, question blocks, etc.).
-	//2) Placement of entities.
-	//3) Placement of background tiles.
-	unsigned short map_height = floor(i_map_sketch.getSize().y / 3.f);
+	unsigned short map_height;
 
-	Map output_map(i_map_sketch.getSize().x);
+	i_map_manager.update_map_sketch(i_current_level);
+	i_map_manager.set_map_size(i_map_manager.get_map_sketch_width());
 
-	for (unsigned short a = 0; a < i_map_sketch.getSize().x; a++)
+	//We divide the height by 3 because the sketch stores the level as 3 layers: blocks, entities, and background tiles.
+	map_height = floor(i_map_manager.get_map_sketch_height() / 3.f);
+
+	i_background_color = i_map_manager.get_map_sketch_pixel(0, i_map_manager.get_map_sketch_height() - 1);
+
+	for (unsigned short a = 0; a < i_map_manager.get_map_sketch_width(); a++)
 	{
 		for (unsigned short b = 0; b < 2 * map_height; b++)
 		{
-			sf::Color pixel = i_map_sketch.getPixel(a, b);
+			sf::Color pixel = i_map_manager.get_map_sketch_pixel(a, b);
 
-			//First we're gonna place the blocks.
 			if (b < map_height)
 			{
 				if (sf::Color(182, 73, 0) == pixel)
 				{
-					output_map[a][b] = Cell::Brick;
+					i_map_manager.set_map_cell(a, b, Cell::Brick);
 				}
-				else if (sf::Color(0, 182, 0) == pixel)
+				else if (sf::Color(255, 255, 0) == pixel)
 				{
-					output_map[a][b] = Cell::Pipe;
+					i_map_manager.set_map_cell(a, b, Cell::Coin);
 				}
-				else if (sf::Color(255, 146, 85) == pixel)
+				else if (sf::Color(0, 146, 0) == pixel || sf::Color(0, 182, 0) == pixel || sf::Color(0, 219, 0) == pixel)
 				{
-					output_map[a][b] = Cell::QuestionBlock;
+					//Multiple colors, because we need to know which part of the pipe we need to draw.
+					i_map_manager.set_map_cell(a, b, Cell::Pipe);
+				}
+				else if (sf::Color(255, 73, 85) == pixel || sf::Color(255, 146, 85) == pixel)
+				{
+					i_map_manager.set_map_cell(a, b, Cell::QuestionBlock);
 				}
 				else if (sf::Color(0, 0, 0) == pixel || sf::Color(146, 73, 0) == pixel)
 				{
-					output_map[a][b] = Cell::Wall;
+					i_map_manager.set_map_cell(a, b, Cell::Wall);
 				}
 				else
 				{
-					output_map[a][b] = Cell::Empty;
+					i_map_manager.set_map_cell(a, b, Cell::Empty);
+
+					if (sf::Color(0, 255, 255) == pixel)
+					{
+						i_level_finish = a;
+					}
 				}
 			}
-			else //Then we're gonna place the entities.
+			else
 			{
 				if (sf::Color(255, 0, 0) == pixel)
 				{
@@ -56,11 +73,13 @@ Map convert_sketch(std::vector<Goomba>& i_goombas, const sf::Image& i_map_sketch
 				}
 				else if (sf::Color(182, 73, 0) == pixel)
 				{
-					i_goombas.push_back(Goomba(CELL_SIZE * a, CELL_SIZE * (b - map_height)));
+					i_enemies.push_back(std::make_shared<Goomba>(sf::Color(0, 0, 85) == i_background_color, CELL_SIZE * a, CELL_SIZE * (b - map_height)));
+				}
+				else if (sf::Color(0, 219, 0) == pixel)
+				{
+					i_enemies.push_back(std::make_shared<Koopa>(sf::Color(0, 0, 85) == i_background_color, CELL_SIZE * a, CELL_SIZE * (b - map_height)));
 				}
 			}
 		}
 	}
-
-	return output_map;
 }

@@ -1,15 +1,15 @@
 #pragma once
 
-class Goomba
+class Goomba : public Enemy
 {
-	bool dead;
+	//This is kinda hard to explain.
+	//Okay, so both Goomba and Koopa can die from Koopa's shell.
+	//And when they do, they bounce of the screen.
+	//So we need a variable that lets us know "Hey! I hit the shell. I'm dying right now from hitting that shell. That damn shell!".
+	bool no_collision_dying;
+	//The underground Goomba looks different than the regular Goomba.
+	bool underground;
 
-	float horizontal_speed;
-	float vertical_speed;
-	float x;
-	float y;
-
-	//As soon as this timer reaches 0, we remove this goomba.
 	unsigned short death_timer;
 
 	sf::Sprite sprite;
@@ -18,16 +18,11 @@ class Goomba
 
 	Animation walk_animation;
 public:
-	Goomba(float i_x, float i_y);
+	Goomba(const bool i_underground, const float i_x, const float i_y);
 
-	bool get_dead() const;
+	bool get_dead(const bool i_deletion) const;
 
-	unsigned short get_death_timer() const;
-
-	//This sounds so dark.
-	void die();
-	void draw(unsigned i_view_x, sf::RenderWindow& i_window);
-	void update(unsigned i_view_x, const std::vector<Goomba>& i_goombas, const Map& i_map, Mario& i_mario);
-
-	sf::FloatRect get_hit_box() const;
+	void die(const unsigned char i_death_type);
+	void draw(const unsigned i_view_x, sf::RenderWindow& i_window);
+	void update(const unsigned i_view_x, const std::vector<std::shared_ptr<Enemy>>& i_enemies, const MapManager& i_map_manager, Mario& i_mario);
 };

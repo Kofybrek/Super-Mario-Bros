@@ -4,66 +4,94 @@
 
 #include "Headers/Animation.hpp"
 #include "Headers/Global.hpp"
-#include "Headers/MapCollision.hpp"
+#include "Headers/MapManager.hpp"
+#include "Headers/Mushroom.hpp"
 #include "Headers/Mario.hpp"
+#include "Headers/Enemy.hpp"
 #include "Headers/Goomba.hpp"
 
-/*
-
-This is supposed to be a pool with 5 swimmers.
-
-     ____      ____      ____      ____     
-____/    \____/    \____/    \____/    \____
-                                            
-_      ____      ____      __\o_     ____   
- \____/    \____/    \____/    \____/    \__
-                                            
-___      ____ _o/  ____      ____      ____ 
-   \____/    \____/    \____/    \____/    \
-                            \o.             
- ____      ____      ____      ____      ___
-/    \\o/_/    \____/    \____/    \____/   
-
-P.S. The 5th swimmer is drowning.
-
-*/
-
-Goomba::Goomba(float i_x, float i_y) :
-	dead(0),
-	horizontal_speed(-GOOMBA_SPEED),
-	vertical_speed(0),
-	x(i_x),
-	y(i_y),
+Goomba::Goomba(const bool i_underground, const float i_x, const float i_y) :
+	Enemy(i_x, i_y),
+	no_collision_dying(0),
+	underground(i_underground),
 	death_timer(GOOMBA_DEATH_DURATION),
-	walk_animation(GOOMBA_WALK_ANIMATION_SPEED, CELL_SIZE, "Resources/Images/GoombaWalk.png")
+	walk_animation(CELL_SIZE, "Resources/Images/GoombaWalk.png", GOOMBA_WALK_ANIMATION_SPEED)
 {
-	texture.loadFromFile("Resources/Images/GoombaDeath.png");
+	horizontal_speed = -GOOMBA_SPEED;
+
+	if (0 == underground)
+	{
+		texture.loadFromFile("Resources/Images/GoombaDeath0.png");
+	}
+	else
+	{
+		texture.loadFromFile("Resources/Images/UndergroundGoombaDeath0.png");
+
+		walk_animation.set_texture_location("Resources/Images/UndergroundGoombaWalk.png");
+	}
 }
 
-bool Goomba::get_dead() const
+bool Goomba::get_dead(const bool i_deletion) const
 {
-	return dead;
+	if (1 == i_deletion)
+	{
+		return dead;
+	}
+	else
+	{
+		return dead || no_collision_dying || GOOMBA_DEATH_DURATION > death_timer;
+	}
 }
 
-unsigned short Goomba::get_death_timer() const
+void Goomba::die(const unsigned char i_death_type)
 {
-	return death_timer;
+	switch (i_death_type)
+	{
+		case 0:
+		{
+			//Instant death. Setting dead to 1 will immediately delete the object.
+			dead = 1;
+
+			break;
+		}
+		case 1:
+		{
+			//Goomba is squished by Mario.
+			if (0 == no_collision_dying)
+			{
+				death_timer--;
+			}
+
+			break;
+		}
+		case 2:
+		{
+			if (GOOMBA_DEATH_DURATION == death_timer)
+			{
+				//Goomba dies from Koopa's shell.
+				no_collision_dying = 1;
+
+				vertical_speed = 0.5f * MARIO_JUMP_SPEED;
+
+				if (0 == underground)
+				{
+					texture.loadFromFile("Resources/Images/GoombaDeath1.png");
+				}
+				else
+				{
+					texture.loadFromFile("Resources/Images/UndergroundGoombaDeath1.png");
+				}
+			}
+		}
+	}
 }
 
-void Goomba::die()
+void Goomba::draw(const unsigned i_view_x, sf::RenderWindow& i_window)
 {
-	dead = 1;
-
-	texture.loadFromFile("Resources/Images/GoombaDeath.png");
-}
-
-void Goomba::draw(unsigned i_view_x, sf::RenderWindow& i_window)
-{
-	//OPTIMIZATION!
-	//We'll only draw goomba if it's visible on the screen.
+	//Making sure we don't draw Goomba outside the view.
 	if (-CELL_SIZE < round(y) && round(x) > static_cast<int>(i_view_x) - CELL_SIZE && round(x) < SCREEN_WIDTH + i_view_x && round(y) < SCREEN_HEIGHT)
 	{
-		if (1 == dead)
+		if (1 == no_collision_dying || GOOMBA_DEATH_DURATION > death_timer)
 		{
 			sprite.setPosition(round(x), round(y));
 			sprite.setTexture(texture);
@@ -72,126 +100,169 @@ void Goomba::draw(unsigned i_view_x, sf::RenderWindow& i_window)
 		}
 		else
 		{
-			walk_animation.draw(round(x), round(y), i_window);
+			walk_animation.set_position(round(x), round(y));
+			walk_animation.draw(i_window);
 		}
 	}
 }
 
-void Goomba::update(unsigned i_view_x, const std::vector<Goomba>& i_goombas, const Map& i_map, Mario& i_mario)
+void Goomba::update(const unsigned i_view_x, const std::vector<std::shared_ptr<Enemy>>& i_enemies, const MapManager& i_map_manager, Mario& i_mario)
 {
-	//OPTIMIZATION!
-	//We'll only update goomba if it's visible on the screen.
+	//I've already explained most of the code here in the Mario class.
+	//I know it's bad to write the same code multiple times.
+	//But I kinda don't care.
+
+	//Making sure we don't update Goomba outside the view.
 	if (-CELL_SIZE < y && x >= static_cast<int>(i_view_x) - CELL_SIZE - ENTITY_UPDATE_AREA && x < ENTITY_UPDATE_AREA + SCREEN_WIDTH + i_view_x && y < SCREEN_HEIGHT)
 	{
-		//I already explained this in "Mario.cpp".
-		unsigned char vertical_collision;
+		std::vector<unsigned char> collision;
+
+		sf::FloatRect hit_box = get_hit_box();
 
 		vertical_speed = std::min(GRAVITY + vertical_speed, MAX_VERTICAL_SPEED);
 
-		sf::FloatRect vertical_hit_box(x, vertical_speed + y, CELL_SIZE, CELL_SIZE);
+		hit_box.top += vertical_speed;
 
-		vertical_collision = map_collision(x, vertical_speed + y, {Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, i_map);
+		collision = i_map_manager.map_collision({Cell::ActivatedQuestionBlock, Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, hit_box);
 
-		if (0 < vertical_collision)
+		if (0 == no_collision_dying)
 		{
-			if (3 & vertical_collision && 12 & ~vertical_collision)
+			if (0 == std::all_of(collision.begin(), collision.end(), [](const unsigned char i_value)
 			{
-				y = CELL_SIZE * (1 + floor((vertical_speed + y) / CELL_SIZE));
-			}
-			else if (3 & ~vertical_collision && 12 & vertical_collision)
+				return 0 == i_value;
+			}))
 			{
-				y = CELL_SIZE * (ceil((vertical_speed + y) / CELL_SIZE) - 1);
-			}
-
-			vertical_speed = 0;
-		}
-		else
-		{
-			y += vertical_speed;
-		}
-
-		if (0 == dead)
-		{
-			unsigned char horizontal_collision;
-
-			sf::FloatRect horizontal_hit_box(horizontal_speed + x, y, CELL_SIZE, CELL_SIZE);
-
-			horizontal_collision = map_collision(horizontal_speed + x, y, {Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, i_map);
-
-			if (0 < horizontal_collision)
-			{
-				if (5 & ~horizontal_collision && 10 & horizontal_collision)
+				if (0 > vertical_speed)
 				{
-					x = CELL_SIZE * (ceil((horizontal_speed + x) / CELL_SIZE) - 1);
+					y = CELL_SIZE * (1 + floor((vertical_speed + y) / CELL_SIZE));
 				}
-				else if (5 & horizontal_collision && 10 & ~horizontal_collision)
+				else
 				{
-					x = CELL_SIZE * (1 + floor((horizontal_speed + x) / CELL_SIZE));
+					y = CELL_SIZE * (ceil((vertical_speed + y) / CELL_SIZE) - 1);
 				}
 
-				horizontal_speed *= -1;
+				vertical_speed = 0;
 			}
 			else
 			{
 				bool changed = 0;
 
-				for (const Goomba& goomba : i_goombas)
+				//Here we're making sure that when Goomba falls on another enemy, they don't intersect.
+				if (0 == get_dead(0))
 				{
-					//Making sure the goombas don't walk through each other.
-					//I USED POINTERS!
-					//        |
-					//        |
-					//       \/
-					if (this != &goomba && 0 == goomba.get_dead() && 1 == horizontal_hit_box.intersects(goomba.get_hit_box()))
+					for (unsigned short a = 0; a < i_enemies.size(); a++)
 					{
-						changed = 1;
+						if (shared_from_this() != i_enemies[a] && 0 == i_enemies[a]->get_dead(0) && 1 == hit_box.intersects(i_enemies[a]->get_hit_box()))
+						{
+							changed = 1;
 
-						horizontal_speed *= -1;
+							if (0 > vertical_speed)
+							{
+								y = i_enemies[a]->get_hit_box().height + i_enemies[a]->get_hit_box().top;
+							}
+							else
+							{
+								y = i_enemies[a]->get_hit_box().top - CELL_SIZE;
+							}
 
-						break;
+							vertical_speed = 0;
+
+							break;
+						}
 					}
 				}
 
 				if (0 == changed)
 				{
-					x += horizontal_speed;
+					y += vertical_speed;
 				}
 			}
 
-			if (0 == i_mario.get_dead() && (1 == horizontal_hit_box.intersects(i_mario.get_hit_box()) || 1 == vertical_hit_box.intersects(i_mario.get_hit_box())))
+			if (0 == get_dead(0))
 			{
-				//If Mario's vertical speed is greater than 0, that means he's falling.
-				//Therefore, if Mario touches the goomba while falling, the goomba will die.
-				if (0 < i_mario.get_vertical_speed())
-				{
-					i_mario.set_vertical_speed(0.5f * MARIO_JUMP_SPEED);
+				hit_box = get_hit_box();
+				hit_box.left += horizontal_speed;
 
-					die();
+				collision = i_map_manager.map_collision({Cell::ActivatedQuestionBlock, Cell::Brick, Cell::Pipe, Cell::QuestionBlock, Cell::Wall}, hit_box);
+
+				if (0 == std::all_of(collision.begin(), collision.end(), [](const unsigned char i_value)
+				{
+					return 0 == i_value;
+				}))
+				{
+					if (0 < horizontal_speed)
+					{
+						x = CELL_SIZE * (ceil((horizontal_speed + x) / CELL_SIZE) - 1);
+					}
+					else
+					{
+						x = CELL_SIZE * (1 + floor((horizontal_speed + x) / CELL_SIZE));
+					}
+
+					horizontal_speed *= -1;
 				}
 				else
 				{
-					i_mario.die();
+					bool changed = 0;
+
+					//Changing direction when colliding with another enemy.
+					for (unsigned short a = 0; a < i_enemies.size(); a++)
+					{
+						if (shared_from_this() != i_enemies[a] && 0 == i_enemies[a]->get_dead(0) && 1 == hit_box.intersects(i_enemies[a]->get_hit_box()))
+						{
+							changed = 1;
+
+							horizontal_speed *= -1;
+
+							break;
+						}
+					}
+
+					if (0 == changed)
+					{
+						x += horizontal_speed;
+					}
+				}
+
+				if (0 == i_mario.get_dead() && 1 == get_hit_box().intersects(i_mario.get_hit_box()))
+				{
+					//If Mario is falling...
+					if (0 < i_mario.get_vertical_speed())
+					{
+						//... then we get squished.
+						die(1);
+
+						i_mario.set_vertical_speed(0.5f * MARIO_JUMP_SPEED);
+					}
+					else
+					{
+						//Otherwise, kill Mario.
+						i_mario.die(0);
+					}
+				}
+
+				walk_animation.update();
+			}
+			else if (GOOMBA_DEATH_DURATION > death_timer)
+			{
+				if (0 < death_timer)
+				{
+					death_timer--;
+				}
+				else
+				{
+					die(0);
 				}
 			}
-
-			walk_animation.update();
 		}
 		else
 		{
-			death_timer = std::max(0, death_timer - 1);
+			y += vertical_speed;
 		}
 	}
 
-	//If goomba falls outside the map, it'll be removed.
 	if (SCREEN_HEIGHT <= y)
 	{
-		dead = 1;
-
-		death_timer = 0;
+		die(0);
 	}
-}
-
-sf::FloatRect Goomba::get_hit_box() const
-{
-	return sf::FloatRect(x, y, CELL_SIZE, CELL_SIZE);
 }
