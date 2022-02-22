@@ -1,6 +1,12 @@
 #pragma once
 
 //I used the keyword "this", which returns the memory address of the object. But since I switched to smart pointers, this class must inherit std::enable_shared_from_this<Enemy>. C++ is weird.
+#include "MapManager.hpp"
+
+#include "Mario.hpp"
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <memory>
 class Enemy : public std::enable_shared_from_this<Enemy>
 {
 protected:
