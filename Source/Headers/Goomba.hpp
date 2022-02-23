@@ -1,5 +1,10 @@
 #pragma once
 
+#include "Animation.hpp"
+#include "Enemy.hpp"
+#include <SFML/Graphics/Sprite.hpp>
+#include <memory>
+#include <SFML/Graphics/RenderWindow.hpp>
 class Goomba : public Enemy
 {
 	//This is kinda hard to explain.
