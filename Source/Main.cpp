@@ -1,6 +1,7 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <memory>
 #include <SFML/Graphics.hpp>
 
 #include "Headers/Animation.hpp"
@@ -26,7 +27,7 @@ int main()
 
 	//Using smart pointer because I'm smart.
 	//(Because we need to store both Goomba and Koopa objects in the same vector).
-	std::vector<std::shared_ptr<Enemy>> enemies;
+	std::vector<std::unique_ptr<Enemy>> enemies;
 
 	sf::Color background_color = sf::Color(0, 219, 255);
 

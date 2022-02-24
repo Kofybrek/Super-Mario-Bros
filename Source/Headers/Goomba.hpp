@@ -29,5 +29,5 @@ public:
 
 	void die(const unsigned char i_death_type);
 	void draw(const unsigned i_view_x, sf::RenderWindow& i_window);
-	void update(const unsigned i_view_x, const std::vector<std::shared_ptr<Enemy>>& i_enemies, const MapManager& i_map_manager, Mario& i_mario);
+	void update(const unsigned i_view_x, const std::vector<std::unique_ptr<Enemy>>& i_enemies, const MapManager& i_map_manager, Mario& i_mario);
 };
