@@ -107,7 +107,7 @@ void Koopa::draw(const unsigned i_view_x, sf::RenderWindow& i_window)
 	}
 }
 
-void Koopa::update(const unsigned i_view_x, const std::vector<std::shared_ptr<Enemy>>& i_enemies, const MapManager& i_map_manager, Mario& i_mario)
+void Koopa::update(const unsigned i_view_x, const std::vector<std::unique_ptr<Enemy>>& i_enemies, const MapManager& i_map_manager, Mario& i_mario)
 {
 	//I've already explained most of the code here in the Mario and Goomba classes.
 	//I'm so bad at writing comments lol.
@@ -148,7 +148,7 @@ void Koopa::update(const unsigned i_view_x, const std::vector<std::shared_ptr<En
 
 				for (unsigned short a = 0; a < i_enemies.size(); a++)
 				{
-					if (shared_from_this() != i_enemies[a] && 0 == i_enemies[a]->get_dead(0) && 1 == hit_box.intersects(i_enemies[a]->get_hit_box()))
+					if (this != i_enemies[a].get() && 0 == i_enemies[a]->get_dead(0) && 1 == hit_box.intersects(i_enemies[a]->get_hit_box()))
 					{
 						changed = 1;
 
@@ -200,7 +200,7 @@ void Koopa::update(const unsigned i_view_x, const std::vector<std::shared_ptr<En
 
 				for (unsigned short a = 0; a < i_enemies.size(); a++)
 				{
-					if (shared_from_this() != i_enemies[a] && 0 == i_enemies[a]->get_dead(0) && 1 == hit_box.intersects(i_enemies[a]->get_hit_box()))
+					if (this != i_enemies[a].get() && 0 == i_enemies[a]->get_dead(0) && 1 == hit_box.intersects(i_enemies[a]->get_hit_box()))
 					{
 						if (0 == state)
 						{

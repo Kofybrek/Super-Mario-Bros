@@ -107,7 +107,7 @@ void Goomba::draw(const unsigned i_view_x, sf::RenderWindow& i_window)
 	}
 }
 
-void Goomba::update(const unsigned i_view_x, const std::vector<std::shared_ptr<Enemy>>& i_enemies, const MapManager& i_map_manager, Mario& i_mario)
+void Goomba::update(const unsigned i_view_x, const std::vector<std::unique_ptr<Enemy>>& i_enemies, const MapManager& i_map_manager, Mario& i_mario)
 {
 	//I've already explained most of the code here in the Mario class.
 	//I know it's bad to write the same code multiple times.
@@ -153,7 +153,7 @@ void Goomba::update(const unsigned i_view_x, const std::vector<std::shared_ptr<E
 				{
 					for (unsigned short a = 0; a < i_enemies.size(); a++)
 					{
-						if (shared_from_this() != i_enemies[a] && 0 == i_enemies[a]->get_dead(0) && 1 == hit_box.intersects(i_enemies[a]->get_hit_box()))
+						if (this != i_enemies[a].get() && 0 == i_enemies[a]->get_dead(0) && 1 == hit_box.intersects(i_enemies[a]->get_hit_box()))
 						{
 							changed = 1;
 
@@ -209,7 +209,7 @@ void Goomba::update(const unsigned i_view_x, const std::vector<std::shared_ptr<E
 					//Changing direction when colliding with another enemy.
 					for (unsigned short a = 0; a < i_enemies.size(); a++)
 					{
-						if (shared_from_this() != i_enemies[a] && 0 == i_enemies[a]->get_dead(0) && 1 == hit_box.intersects(i_enemies[a]->get_hit_box()))
+						if (this != i_enemies[a].get() && 0 == i_enemies[a]->get_dead(0) && 1 == hit_box.intersects(i_enemies[a]->get_hit_box()))
 						{
 							changed = 1;
 

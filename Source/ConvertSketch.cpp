@@ -15,7 +15,7 @@
 
 //One person asked, "Why don't you use Tiled Map Editor?"
 //My answer is, "Why should I work hard, when I don't have to work hard?"
-void convert_sketch(const unsigned char i_current_level, unsigned short& i_level_finish, std::vector<std::shared_ptr<Enemy>>& i_enemies, sf::Color& i_background_color, MapManager& i_map_manager, Mario& i_mario)
+void convert_sketch(const unsigned char i_current_level, unsigned short& i_level_finish, std::vector<std::unique_ptr<Enemy>>& i_enemies, sf::Color& i_background_color, MapManager& i_map_manager, Mario& i_mario)
 {
 	unsigned short map_height;
 
@@ -74,11 +74,11 @@ void convert_sketch(const unsigned char i_current_level, unsigned short& i_level
 				}
 				else if (sf::Color(182, 73, 0) == pixel)
 				{
-					i_enemies.push_back(std::make_shared<Goomba>(sf::Color(0, 0, 85) == i_background_color, CELL_SIZE * a, CELL_SIZE * (b - map_height)));
+					i_enemies.push_back(std::make_unique<Goomba>(sf::Color(0, 0, 85) == i_background_color, CELL_SIZE * a, CELL_SIZE * (b - map_height)));
 				}
 				else if (sf::Color(0, 219, 0) == pixel)
 				{
-					i_enemies.push_back(std::make_shared<Koopa>(sf::Color(0, 0, 85) == i_background_color, CELL_SIZE * a, CELL_SIZE * (b - map_height)));
+					i_enemies.push_back(std::make_unique<Koopa>(sf::Color(0, 0, 85) == i_background_color, CELL_SIZE * a, CELL_SIZE * (b - map_height)));
 				}
 			}
 		}
