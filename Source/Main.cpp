@@ -45,7 +45,7 @@ int main()
 
 	previous_time = std::chrono::steady_clock::now();
 
-	while (1 == window.isOpen())
+	while (window.isOpen())
 	{
 		std::chrono::microseconds delta_time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - previous_time);
 
@@ -148,6 +148,15 @@ int main()
 					enemies[a]->draw(view_x, window);
 				}
 
+
+				if (mario.get_dead())
+				{
+					enemies.clear();
+
+					mario.reset();
+
+					convert_sketch(current_level, level_finish, enemies, background_color, map_manager, mario);
+				}
 				mario.draw(window);
 
 				window.display();
